@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Misión Espacial: Registro y Juego</title>
+    <style>
+        body {
+            background-color: #0b0b1a;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #00ffff;
+            font-size: 1.3rem;
+            text-align: center;
+            margin-bottom: 5px;
+            text-shadow: 0 0 10px rgba(0,255,255,0.5);
+        }
+        .subtitle {
+            color: #ffaa00;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .card {
+            background-color: #12122b;
+            border: 1px solid #444466;
+            border-radius: 10px;
+            padding: 20px;
+            width: 100%;
+            max-width: 600px;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            color: #00ff88;
+            margin-bottom: 5px;
+            font-size: 0.95rem;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #333366;
+            background-color: #1a1a3a;
+            color: white;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        canvas {
+            background-color: #050510;
+            border: 2px solid #3333ff;
+            border-radius: 8px;
+            max-width: 100%;
+            box-shadow: 0 0 15px rgba(51,51,255,0.3);
+        }
+        .reading-box {
+            font-size: 0.95rem;
+            line-height: 1.4;
+            color: #e0e0ff;
+            margin-bottom: 12px;
+            border-left: 4px solid #ffaa00;
+            padding-left: 10px;
+            max-height: 110px;
+            overflow-y: auto;
+        }
+        .question-title {
+            color: #00ff88;
+            font-size: 0.95rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .option-label {
+            display: block;
+            background-color: #1a1a3a;
+            border: 1px solid #333366;
+            border-radius: 6px;
+            padding: 8px 10px;
+            margin: 6px 0;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .option-label:hover {
+            background-color: #2a2a5a;
+            border-color: #00ffff;
+        }
+        input[type="radio"] {
+            margin-right: 8px;
+        }
+        .btn {
+            background-color: #00aa55;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+        .btn:hover {
+            background-color: #00cc66;
+        }
+        .alert-box {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            display: none;
+        }
+        .alert-error {
+            background-color: rgba(255, 0, 0, 0.2);
+            border: 1px solid #ff4444;
+            color: #ff8888;
+        }
+        .alert-success {
+            background-color: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00ff88;
+            color: #88ffcc;
+        }
+        #gameArea, #congratsArea {
+            display: none;
+            width: 100%;
+            flex-direction: column;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🚀 MISIÓN ESPACIAL: FÍSICA Y VOCABULARIO 🚀</h1>
+    <div class="subtitle">Colegio San Ignacio Fe y Alegría</div>
+
+    <!-- PANTALLA 1: REGISTRO DE DATOS -->
+    <div class="card" id="registroArea">
+        <h3 style="color: #00ffff; margin-top:0;">Registro del Estudiante</h3>
+        <div class="input-group">
+            <label>Nombre y Apellido:</label>
+            <input type="text" id="txtNombre" placeholder="Ej. Sofia Gomez" required>
+        </div>
+        <div class="input-group">
+            <label>Curso (Ej. 901):</label>
+            <input type="text" id="txtCurso" placeholder="Ej. 901" required>
+        </div>
+        <button class="btn" onclick="iniciarMision()">Iniciar Misión Espacial</button>
+    </div>
+
+    <!-- PANTALLA 2: JUEGO -->
+    <div id="gameArea">
+        <div class="progress-indicator" id="progressIndicator" style="font-size: 0.8rem; color: #a0a0c0; margin-bottom: 5px; text-align: right; width: 100%; max-width: 750px;">Progreso: Nivel 1 de 20</div>
+        <canvas id="spaceCanvas" width="750" height="120"></canvas>
+        <div class="card" style="margin-top: 10px;">
+            <div class="reading-box" id="readingText"></div>
+            <div class="question-title" id="questionTitle"></div>
+            <div id="optionsContainer"></div>
+            <div id="alertBox" class="alert-box"></div>
+            <button class="btn" id="actionBtn" onclick="verificarRespuesta()">Comprobar Respuesta</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA 3: FINALES -->
+    <div class="card" id="congratsArea" style="text-align: center;">
+        <h2 style="color: #00ff88;">🌟 ¡MISIÓN COMPLETADA! 🌟</h2>
+        <p id="resumenFinal" style="color: #e0e0ff; font-size: 1.05rem;"></p>
+        <p style="color: #ffaa00; font-size: 0.9rem;">Tus resultados y consultas a la IA han sido registrados exitosamente en la base de datos del docente.</p>
+    </div>
+
+    <script>
+        // Datos del estudiante y métricas
+        let estudiante = { nombre: "", curso: "", erroresTotales: 0 };
+        
+        // URL DE TU GOOGLE APPS SCRIPT (Reemplaza esto cuando crees tu Apps Script)
+        const URL_GOOGLE_SHEETS = "AQUÍ_PEGARÁS_EL_ENLACE_DE_GOOGLE_APPS_SCRIPT";
+
+        const JUEGO_DATOS = [
+            {
+                palabra: "inmutable",
+                texto: "Aristóteles consideraba que los objetos pesados caían más rápido. Esta idea permaneció <b style='color:#00ffff;'>inmutable</b> durante dos mil años[cite: 1].",
+                pista: "Que no cambia o no se puede modificar a lo largo del tiempo.",
+                opciones: ["Que cambia constantemente", "Que no cambia o permanece sin alteración", "Que es invisible a la vista", "Que se mueve muy rápido"],
+                correcta: 1
+            },
+            {
+                palabra: "inercia",
+                texto: "Galileo descubrió que todo cuerpo en reposo se mantendría en el mismo reposo por <b style='color:#00ffff;'>inercia</b>[cite: 1].",
+                pista: "Propiedad de los cuerpos de mantener su estado de reposo o movimiento.",
+                opciones: ["La fuerza que atrae los objetos al centro", "Resistencia de un cuerpo a cambiar su estado de reposo o movimiento", "La velocidad máxima de un cohete", "El peso real en el espacio"],
+                correcta: 1
+            },
+            {
+                palabra: "despreciable",
+                texto: "Se busca que el rozamiento del aire sea <b style='color:#00ffff;'>despreciable</b>, o equivalentemente se realice en el vacío[cite: 1].",
+                pista: "Magnitud tan pequeña que se puede pasar por alto en un cálculo.",
+                opciones: ["Algo que causa desprecio o mala educación", "Tan pequeño o insignificante que se puede ignorar en el análisis", "Un valor negativo muy alto", "Una fuerza destructiva"],
+                correcta: 1
+            },
+            {
+                palabra: "intrínseca",
+                pista: "Propiedad esencial y propia de algo, que no depende de factores externos.",
+                texto: "Recordemos que el peso no es una propiedad <b style='color:#00ffff;'>intrínseca</b> de los cuerpos, sino que depende del campo gravitatorio[cite: 1].",
+                opciones: ["Propiedad esencial, íntima y propia de un cuerpo", "Una fuerza que viene de afuera", "Un error de medición", "Algo artificial creado por humanos"],
+                correcta: 0
+            },
+            {
+                palabra: "ingravidez",
+                pista: "Estado en el cual el peso de un cuerpo desaparece por completo.",
+                texto: "Entonces la sensación que tendríamos sería la de <b style='color:#00ffff;'>ingravidez</b>, donde el peso disminuye o desaparece[cite: 1].",
+                opciones: ["Tener un peso extremadamente alto", "Ausencia de peso o sensación de no experimentar gravedad", "Flotar únicamente en el agua", "La fuerza de empuje de un motor"],
+                correcta: 1
+            },
+            {
+                palabra: "centrífuga",
+                pista: "Fuerza o efecto que parece alejar los objetos del centro de rotación.",
+                texto: "Una nave en órbita tiene la velocidad suficiente para que la fuerza <b style='color:#00ffff;'>centrífuga</b> se equilibre con la atracción[cite: 1].",
+                opciones: ["Fuerza que atrae hacia el centro exacto", "Fuerza ficticia que aleja los objetos del centro de rotación", "La velocidad de la luz", "El calor por fricción"],
+                correcta: 1
+            },
+            {
+                palabra: "contrarrestar",
+                pista: "Hacer fuerza en sentido contrario para anular el efecto de otra cosa.",
+                texto: "Los cohetes deben superar la gravedad mediante una fuerza de empuje que tiene que <b style='color:#00ffff;'>contrarrestar</b> la atracción[cite: 1].",
+                opciones: ["Sumar fuerzas en la misma dirección", "Detener el tiempo por completo", "Neutralizar o anular el efecto de una fuerza con otra opuesta", "Multiplicar la velocidad"],
+                correcta: 2
+            },
+            {
+                palabra: "eruditos",
+                pista: "Personas que poseen profundos conocimientos en una ciencia o materia.",
+                texto: "Entre los espectadores del experimento de la torre de Pisa había profesores, <b style='color:#00ffff;'>eruditos</b> y estudiantes[cite: 1].",
+                opciones: ["Personas expertas con gran conocimiento y saber", "Estudiantes de primer ingreso", "Comerciantes de la época", "Creadores de barcos"],
+                correcta: 0
+            },
+            {
+                palabra: "aceleración",
+                pista: "Variación de la velocidad de un cuerpo en una unidad de tiempo.",
+                texto: "Galileo demostró que todos los cuerpos caen con la misma <b style='color:#00ffff;'>aceleración</b> constante de 9.8 m/s²[cite: 1].",
+                opciones: ["El peso total de un objeto pesado", "La tasa de cambio de la velocidad en el tiempo", "La distancia fija recorrida", "La fuerza estática del suelo"],
+                correcta: 1
+            },
+            {
+                palabra: "trayectoria",
+                pista: "Línea geométrica que sigue un cuerpo en movimiento en el espacio.",
+                texto: "El aire puede modificar la <b style='color:#00ffff;'>trayectoria</b> de una hoja de papel hasta hacerla impredecible[cite: 1].",
+                opciones: ["El peso y masa de un cuerpo", "La velocidad final de un impacto", "El camino o línea que describe un cuerpo en movimiento", "El tiempo total de vuelo"],
+                correcta: 2
+            },
+            {
+                palabra: "rotación",
+                pista: "Movimiento de cambio de orientación de un cuerpo alrededor de un eje.",
+                texto: "Todo objeto que caía compartía la misma <b style='color:#00ffff;'>rotación</b> que experimentaba la Tierra y la torre[cite: 1].",
+                opciones: ["Giro de un cuerpo alrededor de un eje o centro", "Desplazamiento en línea recta", "Frenado brusco en el suelo", "Ausencia completa de movimiento"],
+                correcta: 0
+            },
+            {
+                palabra: "rectilíneo",
+                pista: "Dicho de una línea o un movimiento que sigue una dirección recta.",
+                texto: "Para Galileo, el estado natural de un objeto también incluye cualquier movimiento <b style='color:#00ffff;'>rectilíneo</b> y uniforme[cite: 1].",
+                opciones: ["Movimiento en círculos perfectos", "Movimiento que se desplaza en línea recta", "Un salto con curvas parabólicas", "Una oscilación pendular"],
+                correcta: 1
+            },
+            {
+                palabra: "fricción",
+                pista: "Fuerza de resistencia que se opone al deslizamiento entre dos superficies.",
+                texto: "La <b style='color:#00ffff;'>fricción</b> o resistencia al aire impiden que lleguemos a una fuerza G exactamente nula[cite: 1].",
+                opciones: ["Fuerza de rozamiento que frena el movimiento", "Impulso inicial de un cohete", "Atracción magnética pura", "Gravedad universal"],
+                correcta: 0
+            },
+            {
+                palabra: "impredecible",
+                pista: "Que no se puede conocer, anticipar o calcular antes de que ocurra.",
+                texto: "El aire puede modificar la trayectoria de la caída hasta hacerla prácticamente <b style='color:#00ffff;'>impredecible</b>[cite: 1].",
+                opciones: ["Algo sumamente exacto y matemático", "Imposible de anticipar o prever con certeza", "Un cálculo de física cuántica", "Algo programado en computadora"],
+                correcta: 1
+            },
+            {
+                palabra: "gravitacional",
+                pista: "Relativo a la fuerza de atracción mutua entre masas en el universo.",
+                texto: "El peso es la fuerza <b style='color:#00ffff;'>gravitacional</b> ejercida sobre una masa[cite: 1].",
+                opciones: ["Relacionado con la atracción entre masas o gravedad", "Propiedad eléctrica de los metales", "Fuerza generada por imanes artificiales", "Velocidad de escape de la luz"],
+                correcta: 0
+            },
+            {
+                palabra: "colisionar",
+                pista: "Chocar violentamente dos o más cuerpos u objetos.",
+                texto: "El tiempo que tarda un objeto en <b style='color:#00ffff;'>colisionar</b> con la superficie no depende de su peso[cite: 1].",
+                opciones: ["Pasar rozando sin tocarse", "Chocar o impactar violentamente contra algo", "Separarse a gran velocidad", "Girar en órbita estable"],
+                correcta: 1
+            },
+            {
+                palabra: "órbita",
+                pista: "Camino curvo que describe un cuerpo celeste alrededor de otro debido a la gravedad.",
+                texto: "Una nave en <b style='color:#00ffff;'>órbita</b> tiene la velocidad suficiente para equilibrar la atracción[cite: 1].",
+                opciones: ["Trayectoria curva que un cuerpo sigue alrededor de otro", "Línea recta hacia el infinito", "Caída libre directa al centro de la Tierra", "Una parada en el espacio exterior"],
+                correcta: 0
+            },
+            {
+                palabra: "acelerómetro",
+                pista: "Dispositivo diseñado para medir las aceleraciones o fuerzas G.",
+                texto: "Los datos del <b style='color:#00ffff;'>acelerómetro</b> demuestran claramente los principios físicos del juego mecánico[cite: 1].",
+                opciones: ["Aparato para medir la velocidad de la luz", "Instrumento que mide la aceleración y fuerzas G", "Reloj de alta precisión atómica", "Brújula magnética espacial"],
+                correcta: 1
+            },
+            {
+                palabra: "vector",
+                pista: "Magnitud física representada matemáticamente con módulo, dirección y sentido.",
+                texto: "La caída libre se dirige hacia abajo, es un <b style='color:#00ffff;'>vector</b> dirigido hacia el centro de la Tierra[cite: 1].",
+                opciones: ["Un número escalar sin dirección", "Segmento de recta orientado que representa magnitudes físicas", "Una fórmula algebraica compleja", "Un punto estático en el plano"],
+                correcta: 1
+            },
+            {
+                palabra: "empuje",
+                pista: "Fuerza impulsora que actúa sobre un cuerpo para moverlo en una dirección.",
+                texto: "Los cohetes deben superar la gravedad mediante una fuerza de <b style='color:#00ffff;'>empuje</b> ascendente[cite: 1].",
+                opciones: ["Fuerza ascendente o impulsora que hace avanzar el cohete", "Atracción hacia abajo de la Tierra", "Resistencia estática del aire", "Peso neto de la carga"],
+                correcta: 0
+            }
+        ];
+
+        let nivelActual = 0;
+        let intentosFallidos = 0;
+
+        function iniciarMision() {
+            const nombre = document.getElementById("txtNombre").value.trim();
+            const curso = document.getElementById("txtCurso").value.trim();
+
+            if (!nombre || !curso) {
+                alert("Por favor ingresa tu nombre y tu curso para continuar.");
+                return;
+            }
+
+            estudiante.nombre = nombre;
+            estudiante.curso = curso;
+
+            document.getElementById("registroArea").style.display = "none";
+            document.getElementById("gameArea").style.display = "flex";
+            cargarNivel();
+        }
+
+        function dibujarEscenario(progreso) {
+            const canvas = document.getElementById("spaceCanvas");
+            const ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = "#ffffff";
+            for (let i = 0; i < 30; i++) {
+                let rx = (i * 27) % canvas.width;
+                let ry = (i * 13) % canvas.height;
+                ctx.fillRect(rx, ry, 2, 2);
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(30, 60);
+            ctx.lineTo(720, 60);
+            ctx.strokeStyle = "#444466";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([3, 3]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            let posX = 30 + (progreso * 36.3);
+
+            ctx.fillStyle = "#ff3333";
+            ctx.beginPath();
+            ctx.moveTo(posX, 48);
+            ctx.lineTo(posX + 24, 60);
+            ctx.lineTo(posX, 72);
+            ctx.fill();
+
+            ctx.fillStyle = "#ffaa00";
+            ctx.beginPath();
+            ctx.moveTo(posX + 24, 60);
+            ctx.lineTo(posX + 32, 60);
+            ctx.lineTo(posX + 24, 72);
+            ctx.fill();
+
+            ctx.fillStyle = "#00ffff";
+            ctx.beginPath();
+            ctx.arc(posX + 12, 60, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = "#ff4400";
+            ctx.beginPath();
+            ctx.moveTo(posX - 10, 56);
+            ctx.lineTo(posX, 60);
+            ctx.lineTo(posX - 10, 64);
+            ctx.fill();
+        }
+
+        function cargarNivel() {
+            const alertBox = document.getElementById("alertBox");
+            alertBox.style.display = "none";
+
+            if (nivelActual < JUEGO_DATOS.length) {
+                const item = JUEGO_DATOS[nivelActual];
+                document.getElementById("progressIndicator").innerText = `Progreso: Nivel ${nivelActual + 1} de 20`;
+                document.getElementById("readingText").innerHTML = item.texto;
+                document.getElementById("questionTitle").innerText = `Vocabulario (${nivelActual + 1}/20): ¿Qué significa '[ ${item.palabra.toUpperCase()} ]'?`;
+
+                let opcionesHtml = "";
+                item.opciones.forEach((op, index) => {
+                    opcionesHtml += `
+                        <label class="option-label">
+                            <input type="radio" name="opcion" value="${index}"> ${op}
+                        </label>
+                    `;
+                });
+                document.getElementById("optionsContainer").innerHTML = opcionesHtml;
+                dibujarEscenario(nivelActual);
+                intentosFallidos = 0;
+            } else {
+                document.getElementById("gameArea").style.display = "none";
+                document.getElementById("congratsArea").style.display = "block";
+                document.getElementById("resumenFinal").innerHTML = `Estudiante: <b>${estudiante.nombre}</b><br>Curso: <b>${estudiante.curso}</b><br>Total de veces que requirió consultar la IA por errores: <b style="color:#ff4444;">${estudiante.erroresTotales}</b>`;
+                enviarDatosAGoogleSheets();
+            }
+        }
+
+        function verificarRespuesta() {
+            const radios = document.getElementsByName("opcion");
+            let seleccionada = -1;
+            for (let i = 0; i < radios.length; i++) {
+                if (radios[i].checked) {
+                    seleccionada = parseInt(radios[i].value);
+                    break;
+                }
+            }
+
+            const alertBox = document.getElementById("alertBox");
+
+            if (seleccionada === -1) {
+                alertBox.className = "alert-box alert-error";
+                alertBox.innerText = "Por favor selecciona una opción de respuesta.";
+                alertBox.style.display = "block";
+                return;
+            }
+
+            const item = JUEGO_DATOS[nivelActual];
+            if (seleccionada === item.correcta) {
+                alertBox.className = "alert-box alert-success";
+                alertBox.innerText = "🎉 ¡Correcto! Tu nave avanza a la siguiente estación espacial.";
+                alertBox.style.display = "block";
+                setTimeout(() => {
+                    nivelActual++;
+                    cargarNivel();
+                }, 1100);
+            } else {
+                intentosFallidos++;
+                estudiante.erroresTotales++; // Sumamos al contador de errores / consultas a IA
+                alertBox.className = "alert-box alert-error";
+                if (intentosFallidos === 1) {
+                    alertBox.innerHTML = `❌ ¡Incorrecto! <b>Acción requerida:</b> Busca el significado de <i>'${item.palabra}'</i> en una IA y responde de nuevo.`;
+                } else {
+                    alertBox.innerHTML = `💡 Pista: ${item.pista}`;
+                }
+                alertBox.style.display = "block";
+            }
+        }
+
+        function enviarDatosAGoogleSheets() {
+            if (URL_GOOGLE_SHEETS.includes("AQUÍ_PEGARÁS")) return; // Evita error si no está configurado
+            
+            const datos = {
+                nombre: estudiante.nombre,
+                curso: estudiante.curso,
+                errores: estudiante.erroresTotales,
+                fecha: new Date().toLocaleString()
+            };
+
+            fetch(URL_GOOGLE_SHEETS, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(datos)
+            }).catch(error => console.error("Error al enviar datos:", error));
+        }
+    </script>
+</body>
+</html>
